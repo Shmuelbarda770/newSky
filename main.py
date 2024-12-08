@@ -2,9 +2,8 @@
 import flet as ft
 from flet import Page, TextField, ElevatedButton, Row, Column,Text
 from datetime import datetime
-from drone_comm_system import open_socket, stop
+from drone_comm_system import open_socket, stop,event
 from flet import Colors as cl,Icons
-from drone_comm_system import event
 from validation_manager import input_entered_and_valid_input
 from updatePage import disabled_input
 import sys

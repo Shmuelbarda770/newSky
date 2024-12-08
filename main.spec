@@ -5,7 +5,9 @@ additional_packages =list()
 
 additional_packages.append('flet')
 additional_packages.append('flet-desktop-light')
-
+additional_packages.append('flet-cli')
+additional_packages.append('flet-desktop')
+additional_packages.append('flet-web')
 a = Analysis(
     ['main.py'],
     pathex=[],
@@ -26,7 +28,8 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='main',
+    name='sky view',
+    icon='src/assets/img/images.ico',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
