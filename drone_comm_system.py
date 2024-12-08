@@ -168,6 +168,7 @@ def collect_data(event, route_id, Platform_flight_index,
         logger.error(f"Socket error: {e}")
         show_error_in_screen(running_problems,f"Socket error")
     finally:
+        
         if server_socket:
             try:
                 server_socket.close()
@@ -175,7 +176,6 @@ def collect_data(event, route_id, Platform_flight_index,
             except Exception as e:
                 logger.error(f"Failed to close the socket: {e}")
                 show_error_in_screen(running_problems,"Failed to close the socket")
-
 
 
 def open_socket(event: threading.Event, route_id, Platform_flight_index, 
@@ -198,9 +198,11 @@ def open_socket(event: threading.Event, route_id, Platform_flight_index,
         tread1.join()
         tread2.join()
 
+        
     except Exception as e:
         logger.error(f"Error in thread pool: {e}")
     finally:
+        
         logger.info("Thread pool shut down.")
         print(len(threading.enumerate()))
 

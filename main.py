@@ -7,11 +7,14 @@ from flet import Colors as cl,Icons
 from drone_comm_system import event
 from validation_manager import input_entered_and_valid_input
 from updatePage import disabled_input
-import threading
+import sys
+import os
+import signal
 import time
 def main(page: Page):
     
-
+    
+    
     page.title = "Sky View"
     page.window.width = 900
     page.window.height = 700
@@ -71,45 +74,53 @@ def main(page: Page):
 
     start_stop_button = ElevatedButton(text="start", width=200, bgcolor=cl.GREEN)
 
+    event_finish_to_collect_data = False
+
     def start_stop_handler(e):
-        nonlocal is_processing
-        # if is_processing:
-        #     return
-    
-    
-        if not input_entered_and_valid_input(is_details_entered,route_id,Platform_flight_index,platform_id,platform_name,date,output,page):
-            return
+        nonlocal event_finish_to_collect_data
+
         
-        is_processing = True
         try:
             if event.is_set():
-                print("stop")
-                disabled_input_on_start=False
-                disabled_input(disabled_input_on_start,route_id,Platform_flight_index,platform_id,platform_name,
-                               date,status_indicator_red,status_indicator_yellow,status_indicator_green)
-                start_stop_button.text = "start"
-                start_stop_button.bgcolor = 'green'
+                output.value = ""
+                output.update()
+                event_finish_to_collect_data=True
+                print("Stopping process")
+                is_processing = False
+                disabled_input_on_start = False
+                disabled_input(disabled_input_on_start, route_id, Platform_flight_index, platform_id, platform_name,
+                            date, status_indicator_red, status_indicator_yellow, status_indicator_green)
+                start_stop_button.text = "Start"
+                start_stop_button.bgcolor = cl.GREEN
                 start_stop_button.update()
                 page.update()
                 stop()
             else:
-                print("start")
-                disabled_input_on_stop=True
-                disabled_input(disabled_input_on_stop,route_id,Platform_flight_index,platform_id,platform_name,date,
-                               status_indicator_red,status_indicator_yellow,status_indicator_green)
-                start_stop_button.text = "stop"
-                start_stop_button.bgcolor = 'red'
+                if event_finish_to_collect_data:
+                    output.value = "The system is already running"
+                    output.color = "red"
+                    output.update()
+                    return
+                
+                print("Starting process")
+                
+                is_processing = True
+                disabled_input_on_stop = True
+                disabled_input(disabled_input_on_stop, route_id, Platform_flight_index, platform_id, platform_name, date,
+                            status_indicator_red, status_indicator_yellow, status_indicator_green)
+                start_stop_button.text = "Stop"
+                start_stop_button.bgcolor = cl.RED
                 start_stop_button.update()
                 page.update()
-                event.set()
-                open_socket(event, route_id.value, Platform_flight_index.value, 
+                event.set() 
+                open_socket(event, route_id.value, Platform_flight_index.value,
                             platform_id.value, platform_name.value, date.text, status_indicator_red,
-                            status_indicator_yellow, status_indicator_green, status_connection, 
-                            cont_json_received, cont_send_json_to_cloud,running_problems)
-        finally:
-              is_processing = False
-
-       
+                            status_indicator_yellow, status_indicator_green, status_connection,
+                            cont_json_received, cont_send_json_to_cloud, running_problems)
+                event_finish_to_collect_data=False
+        except Exception as e:
+            pass
+ 
 
 
     def update_view():
@@ -136,10 +147,19 @@ def main(page: Page):
 
     
     def handle_window_event(e: ft.ControlEvent):
+        print("called")
         if e.data == "close":
-            stop() 
+            page.window.prevent_close=False
+            page.window.close()
+            try:
+                time.sleep(2)
+                sys.exit(0)
+            except SystemExit as e:
+                os.kill(os.getpid(),signal.SIGTERM)
 
-    page.on_close = handle_window_event
+
+    page.window.prevent_close=True
+    page.window.on_event=handle_window_event
 
 if __name__ == "__main__":
     ft.app(target=main)
